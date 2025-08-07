@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .todo import todo_router
+from todos.todo import todo_router
 
 app = FastAPI()
 
