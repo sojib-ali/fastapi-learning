@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Path
-from todos.model import Todo, TodoItem
+from todos.model import Todo, TodoItem, TodoItems
 
 todo_router = APIRouter()
 
@@ -41,6 +41,15 @@ async def update_todo(todo_data: TodoItem, todo_id: int = Path(..., title= "The 
 async def delete_all_todo() -> dict:
     todo_list.clear()
     return {
-        "message": "Todos deleted successfully."
+        "message": "Todos deleted successfully!"
     }
+
+
+@todo_router.get("/todo",response_model=TodoItems)
+async def retrieve_todos() -> dict:
+    return{
+        "todos": todo_list
+    }
+
+
 
