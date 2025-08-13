@@ -1,0 +1,15 @@
+{% extends 'home.html' %}
+
+{% block title %}  {{todo.item}} {% endblock title%}
+
+{% block todo_container%} 
+ 
+  <article class="card container-fluid">
+    <br />
+    <h4>Todo ID: {{todo.id}}</h4>
+    <p>
+      <strong> Item: {{todo.item}} </strong>
+    </p>
+  </article>
+
+{% endblock todo_container%}

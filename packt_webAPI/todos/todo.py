@@ -27,11 +27,11 @@ async def retrieve_todo(request: Request) :
 async def get_single_todo(request: Request, todo_id: int) -> dict:
     for todo in todo_list:
         if todo.id == todo_id:
-            return templates.TemplateResponse("todo.html",
+            return templates.TemplateResponse("todo_details.html",
             {
                 "request": request,
                 "todo": todo,
-                "todos": todo_list
+                # "todos": todo_list
             })
     raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
