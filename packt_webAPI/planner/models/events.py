@@ -1,8 +1,9 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from uuid import UUID, uuid4
 
 class Event(BaseModel):
-    id: int
+    id: UUID = Field(default_factory = uuid4)
     title: str
     image: str
     description: str
@@ -14,9 +15,10 @@ class Event(BaseModel):
             "example":{
                 "title": "FastAPI Book Launch",
                 "image": "https://linktomyimage.com/image.png",
-                "dexription": "We will be discussing the content of the FastAPI book in this event.",
+                "description": "We will be discussing the content of the FastAPI book in this event.",
                 "tags": ["python", "fastapi", "book", "launch"],
                 "location": "Google Meet"
+                
             }
         }
     }
