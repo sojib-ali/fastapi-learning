@@ -53,11 +53,12 @@ async def update_event(id: UUID, new_data: EventUpdate, session = Depends(get_se
                         detail = "Event with supplied ID does not exist")
 
 @event_router.delete("/{id}")
-async def delete_event(id: UUID) -> dict:
-    for index, event in enumerate(events):
-        if event.id == id:
-            events.pop(index)
-            return {"message": "Event deleted successfully"}
+async def delete_event(id: UUID, session=Depends(get_session)) -> dict:
+    event = session.get(Event, id)
+    if event:
+        session.delete(event)
+        session.commit()
+        return {"message": "Event deleted successfully"}
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail = "Event with supplied ID does not exist"
