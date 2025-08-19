@@ -61,3 +61,8 @@ class Database:
             await doc.delete()
             return True
         return False
+    
+    async def delete_all(self) -> int:
+        """Deletes all documents from the collection."""
+        delete_result = await self.model.delete_all()
+        return delete_result.deleted_count

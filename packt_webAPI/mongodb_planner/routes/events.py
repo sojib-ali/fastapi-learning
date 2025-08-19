@@ -3,7 +3,6 @@ from fastapi import APIRouter, HTTPException, status
 from database.connection import Database
 from  models.events import Event, EventUpdate
 from typing import List
-from uuid import UUID
 event_database = Database(Event)
 
 event_router = APIRouter(tags=["Events"])
@@ -52,9 +51,9 @@ async def delete_event(id: PydanticObjectId) -> dict:
         "message": "Event deleted successfully"
     }
 
-# @event_router.delete("/")
-# async def delete_all_events() -> dict:
-#     events.clear()
-#     return{
-#         "message": "Events deleted successfully"
-#     }
+@event_router.delete("/")
+async def delete_all_events() -> dict:
+    deleted_count = await event_database.delete_all()
+    return{
+        "message": f"{deleted_count} events deleted successfully"
+    }
