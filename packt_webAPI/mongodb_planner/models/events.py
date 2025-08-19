@@ -8,6 +8,7 @@ class Event(Document):
     description: str
     tags: List[str]
     location: str
+    creator: Optional[str]
 
     model_config = {
         "json_schema_extra": {
@@ -16,7 +17,8 @@ class Event(Document):
                 "image": "https://linktomyimage.com/image.png",
                 "description": "Discussed the content of the FastAPI book",
                 "tags": ["python", "fastapi", "book", "launch"],
-                "location": "Google Meet"
+                "location": "Google Meet",
+                "creator": "a@b.com"
             }
         }
     }
@@ -42,3 +44,4 @@ class EventUpdate(BaseModel):
             }
         }
     }
+
