@@ -47,20 +47,20 @@ class Database:
     async def update(self, id: PydanticObjectId, body: BaseModel) -> Optional[ModelType]:
         """Updates a document by its ID."""
         doc = await self.get(id)
-        if doc:
-            update_data = body.model_dump(exclude_unset=True)
-            await doc.set(update_data)
-            await doc.save()
-            return doc
-        return None
+        if not doc:
+            return None
+        
+        update_data = body.model_dump(exclude_unset=True)
+        # The `update` method on a Beanie document instance performs an atomic
+        # find-and-update operation and returns the updated document.
+        await doc.update({"$set": update_data})
+        return doc
     
     async def delete(self, id: PydanticObjectId) -> bool:
         """Deletes a document by its ID."""
-        doc = await self.get(id)
-        if doc:
-            await doc.delete()
-            return True
-        return False
+        # Atomically finds and deletes the document in a single operation.
+        delete_result = await self.model.find_one(self.model.id == id).delete()
+        return delete_result is not None and delete_result.deleted_count > 0
     
     async def delete_all(self) -> int:
         """Deletes all documents from the collection."""
