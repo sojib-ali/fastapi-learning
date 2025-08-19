@@ -15,6 +15,7 @@ ModelType = TypeVar("ModelType", bound=Document)
 class Settings(BaseSettings):
     # This is now a required setting. The app will not start if this is not defined in the environment.
     DATABASE_URL: str
+    SECRET_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"
