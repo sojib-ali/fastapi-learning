@@ -1,0 +1,6 @@
+// {
+//     "python.defaultInterpreterPath": "/home/sojib/fastapi-learning/vfstpi/bin/python",
+//     "python.analysis.extraPaths": [
+//         "./packt_webAPI/mongodb_planner"
+//     ]
+// }
