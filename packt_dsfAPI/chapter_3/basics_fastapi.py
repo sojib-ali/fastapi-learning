@@ -1,13 +1,13 @@
 from enum import Enum
-from fastapi import FastAPI, Path, Query, Body, Form, File, UploadFile
+from fastapi import FastAPI, Path, Query, Body, Form, File, UploadFile, Header, Cookie, Request
 from pydantic import BaseModel
 
 app = FastAPI()
 
 
-@app.get("/")
-async def hello_world():
-    return {"hello": "world"}
+# @app.get("/")
+# async def hello_world():
+#     return {"hello": "world"}
 
 
 #path parameter
@@ -84,3 +84,24 @@ async def upload_multiple_files(files: list[UploadFile] = File(...)):
         
         for file in files
     ]
+
+#headers
+@app.get("/")
+async def get_header(hello: str = Header(...)):
+    return {"hello" : hello}
+
+@app.get("/")
+async def get_header_user_agent(user_agent: str = Header(...)):
+    return {"user_agent": user_agent}
+
+#cookies
+@app.get("/")
+async def get_cookie(hello:str | None = Cookie(None)):
+    return {"hello": hello}
+
+#the request object
+@app.get("/")
+async def get_reqeust_obj(request: Request):
+    return {"path": request.url.path}
+
+
