@@ -57,3 +57,29 @@ async def list_posts(
 @app.get("/posts/{id}", response_model=schemas.PostRead)
 async def get_post(post: Post = Depends(get_post_or_404)) -> Post:
     return post
+
+
+@app.patch("/posts/{id}", response_model = schemas.PostRead)
+async def update_post(
+    post_update: schemas.PostPartialUpdate,
+    post: Post = Depends(get_post_or_404),
+    session: AsyncSession = Depends(get_async_session),
+) -> Post:
+    post_update_dict = post_update.model_dump(exclude_unset=True)
+    for key, value in post_update_dict.items():
+        setattr(post, key, value)
+
+    session.add(post)
+    await session.commit()
+    await session.refresh(post)
+
+    return post
+
+@app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
+async def delete_post(
+    post: Post = Depends(get_post_or_404),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await session.delete(post)
+    await session.commit()
+
