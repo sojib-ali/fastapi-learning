@@ -1,4 +1,5 @@
 import contextlib
+from collections.abc import Sequence
 from .database import create_all_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,10 +14,46 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+async def pagination(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=0),
+) -> tuple[int, int]:
+    capped_limit = min(100, limit)
+    return (skip, capped_limit)
+
+async def get_post_or_404(
+    id: int, session: AsyncSession = Depends(get_async_session)
+) -> Post:
+    select_query = select(Post).where(Post.id == id)
+    result = await session.execute(select_query)
+    post = result.scalar_one_or_none()
+
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    return post
+
+
 @app.post("/posts", response_model = schemas.PostRead, status_code = status.HTTP_201_CREATED)
 async def create_post(post_create: schemas.PostCreate, session: AsyncSession = Depends(get_async_session)) -> Post:
     post = Post(**post_create.model_dump())
     session.add(post)
     await session.commit()
 
+    return post
+
+
+@app.get("/posts", response_model=list[schemas.PostRead])
+async def list_posts(
+    pagination: tuple[int, int] = Depends(pagination),
+    session: AsyncSession = Depends(get_async_session),
+) -> Sequence[Post]:
+    skip, limit = pagination
+    select_query = select(Post).offset(skip).limit(limit)
+    result = await session.execute(select_query)
+
+    return result.scalars().all()
+
+@app.get("/posts/{id}", response_model=schemas.PostRead)
+async def get_post(post: Post = Depends(get_post_or_404)) -> Post:
     return post
