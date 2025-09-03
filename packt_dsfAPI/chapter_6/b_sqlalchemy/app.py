@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import FastAPI, Depends, HTTPException, Query, status
 from . import schemas
-from .models import Post
+from .models import Post, Comment
 
 @contextlib.asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -83,3 +83,20 @@ async def delete_post(
     await session.delete(post)
     await session.commit()
 
+
+@app.post(
+    "/posts/{id}/comments",
+    response_model=schemas.CommentRead,
+    status_code = status.HTTP_201_CREATED,
+)
+async def create_comment(
+    comment_create: schemas.CommentCreate,
+    post: Post = Depends(get_post_or_404),
+    session: AsyncSession = Depends(get_async_session),
+) -> Comment:
+    comment = Comment(**comment_create.model_dump(), post = post)
+    session.add(comment)
+    await session.commit()
+
+    return comment
+    
