@@ -6,6 +6,7 @@ from sqlalchemy import select
 from fastapi import FastAPI, Depends, HTTPException, Query, status
 from . import schemas
 from .models import Post, Comment
+from sqlalchemy.orm import selectinload
 
 @contextlib.asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -24,7 +25,9 @@ async def pagination(
 async def get_post_or_404(
     id: int, session: AsyncSession = Depends(get_async_session)
 ) -> Post:
-    select_query = select(Post).where(Post.id == id)
+    select_query = (
+        select(Post).options(selectinload(Post.comments)).where(Post.id == id)
+        )
     result = await session.execute(select_query)
     post = result.scalar_one_or_none()
 
