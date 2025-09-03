@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from .models import Base
 
-DATABASE_URL = "sqlite+aiosqlite:///chapter6_sqlalchemy.db"
+DATABASE_URL = "sqlite+aiosqlite:///chapter_6_b_sqlalchemy.db"
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
