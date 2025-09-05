@@ -1,9 +1,16 @@
 from bson import  ObjectId, errors
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo import ReturnDocument
 
 from database import get_database
 from models import Post, PostCreate, PostPartialUpdate
+from models import (
+    CommentCreate,
+    Post,
+    PostCreate,
+    PostPartialUpdate,
+)
 
 app = FastAPI()
 
@@ -58,3 +65,53 @@ async def create_post(
 
     return post
 
+@app.patch("/posts/{id}", response_model = Post)
+async def update_post(
+    post_update: PostPartialUpdate,
+    post: Post = Depends(get_post_or_404),
+    database: AsyncIOMotorDatabase = Depends(get_database),
+) -> Post:
+    # Pydantic V2 uses model_dump() instead of model_copy() to get a dict.
+    # exclude_unset=True ensures we only update fields that were provided.
+    update_data = post_update.model_dump(exclude_unset=True)
+
+    if not update_data:
+        # No fields were provided for update, so just return the existing post.
+        return post
+
+    updated_post = await database["posts"].find_one_and_update(
+        {"_id": post.id},
+        {"$set": update_data},
+        return_document=ReturnDocument.AFTER,
+    )
+
+    if updated_post is None:
+        # This can happen in a race condition if the post is deleted
+        # between the initial get_post_or_404 and this operation.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return updated_post
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(
+    post: Post = Depends(get_post_or_404),
+    database: AsyncIOMotorDatabase = Depends(get_database),
+):
+    await database["posts"].delete_one({"_id": post.id})
+
+
+@app.post(
+    "/posts/{id}/comments", response_model = Post, status_code = status.HTTP_201_CREATED
+)
+async def create_comment(
+    comment: CommentCreate,
+    post: Post = Depends(get_post_or_404),
+    database: AsyncIOMotorDatabase = Depends(get_database),
+) -> Post:
+    await database["posts"].update_one(
+        {"_id": post.id}, {"$push": {"comments": comment.model_dump()}}
+    )
+
+    post = await get_post_or_404(post.id, database)
+
+    return post
