@@ -3,11 +3,12 @@ from fastapi import FastAPI, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from authentication import schemas
 from database import create_all_tables, get_async_session
-from models import User
+from models import User, AccessToken
 from sqlalchemy.ext.asyncio import AsyncSession
 from password import get_password_hash
-from sqlalchemy import exc
+from sqlalchemy import exc, select
 from authentication import authenticate, create_access_token
+from datetime import datetime, timezone
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,3 +54,22 @@ async def create_token(
     return {"access_token": token.access_token, "token_type": "bearer"}
 
 
+async def get_current_user(
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="/token")),
+    session: AsyncSession = Depends(get_async_session),
+) -> User:
+    query = select(AccessToken).where(
+        AccessToken.access_token == token,
+        AccessToken.expiration_date >= datetime.now(tz= timezone.utc,),
+    )
+    result = await session.execute(query)
+    access_token: AccessToken | None = result.scalar_one_or_none()
+
+    if access_token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    
+    return access_token.user
+
+@app.get("/protected-route", response_model = schemas.UserRead)
+async def protected_route(user: User = Depends(get_current_user))
+    return user
