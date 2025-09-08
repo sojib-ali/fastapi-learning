@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from models import Base #type: ignore
+from models import Base # type: ignore
 
 DATABASE_URL = "sqlite+aiosqlite:///chapter07_authentication.db"
 engine = create_async_engine(DATABASE_URL)
